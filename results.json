@@ -1,0 +1,70 @@
+{
+  "snapshotISO": "2026-05-02T04:48:04.564Z",
+  "rounds": {
+    "round1": {
+      "localStorageKey": "diag_r1_v2",
+      "ratings": {
+        "saw_short_1s": "not_perceived",
+        "saw_long_30s": "perceived",
+        "sine_5s": "not_perceived",
+        "square_5s": "perceived",
+        "saw_5s": "perceived",
+        "saw_low_5s": "boundary",
+        "saw_mid_5s": "boundary",
+        "saw_high_5s": "not_perceived",
+        "saw_5s_silence": "not_perceived"
+      },
+      "reaction": "Need noise to hear the effect at all. Too high or too low of a freq seems to push the boundary. 30s had the most pronounced effect."
+    },
+    "round2": {
+      "localStorageKey": "diag_r2_v2",
+      "ratings": {
+        "r2_sawtooth_20hz": "not_perceived",
+        "r2_sawtooth_200hz": "perceived",
+        "r2_sawtooth_400hz": "perceived",
+        "r2_square_20hz": "not_perceived",
+        "r2_square_200hz": "perceived",
+        "r2_square_400hz": "perceived",
+        "r2_halfSaw_20hz": "not_perceived",
+        "r2_halfSaw_200hz": "perceived",
+        "r2_halfSaw_400hz": "perceived",
+        "r2_halfSquare_20hz": "not_perceived",
+        "r2_halfSquare_200hz": "perceived",
+        "r2_halfSquare_400hz": "perceived"
+      },
+      "reaction": "should have set the boundaries to >80hz, >400hz."
+    },
+    "round3": {
+      "localStorageKey": "diag_r3_v2",
+      "ratings": {
+        "r3_sawQuarter_60hz": "perceived",
+        "r3_sawQuarter_450hz": "boundary",
+        "r3_sawEighth_60hz": "not_perceived",
+        "r3_sawEighth_450hz": "not_perceived",
+        "r3_squareQuarter_60hz": "perceived",
+        "r3_squareQuarter_450hz": "boundary",
+        "r3_squareEighth_60hz": "perceived",
+        "r3_squareEighth_450hz": "not_perceived"
+      },
+      "reaction": "n/a"
+    },
+    "round4": {
+      "localStorageKey": "diag_r4_v2",
+      "ratings": {
+        "r4_sawThreeEighth_60hz": "not_perceived",
+        "r4_sawThreeEighth_200hz": "boundary",
+        "r4_sawThreeEighth_450hz": "not_perceived",
+        "r4_sawQuarter_60hz": "not_perceived",
+        "r4_sawQuarter_200hz": "boundary",
+        "r4_sawQuarter_450hz": "boundary",
+        "r4_squareThreeEighth_60hz": "perceived",
+        "r4_squareThreeEighth_200hz": "perceived",
+        "r4_squareThreeEighth_450hz": "boundary",
+        "r4_squareQuarter_60hz": "perceived",
+        "r4_squareQuarter_200hz": "boundary",
+        "r4_squareQuarter_450hz": "boundary"
+      },
+      "reaction": "should not have used redundant parameters, but i have a better idea of the boundary in terms of harmonics"
+    }
+  }
+}

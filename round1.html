@@ -1,0 +1,396 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Round 1</title>
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: #ffffff; color: #000000; }
+  body {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 14px;
+    line-height: 1.45;
+    padding: 16px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  h1 { font-size: 18px; margin: 0 0 8px; }
+  h2 { font-size: 14px; margin: 0 0 8px; color: #000000; text-transform: uppercase; letter-spacing: 0.08em; }
+  .nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .nav a { color: #000000; text-decoration: underline; font-size: 13px; }
+  .warn {
+    background: #ffffff; border: 1px solid #000000; color: #000000;
+    padding: 8px 12px; margin-bottom: 12px; font-size: 13px;
+  }
+  .topbar {
+    display: grid; grid-template-columns: 1fr auto auto; gap: 12px; align-items: center;
+    background: #ffffff; border: 1px solid #000000; padding: 10px 12px; margin-bottom: 12px;
+  }
+  .vol { display: flex; align-items: center; gap: 8px; min-width: 280px; }
+  .vol input[type=range] { flex: 1; }
+  button {
+    background: #ffffff; color: #000000; border: 1px solid #000000;
+    padding: 8px 12px; font: inherit; cursor: pointer;
+  }
+  button:hover { background: #f0f0f0; }
+  button:active { transform: translateY(1px); }
+  button.danger { background: #ffffff; border-color: #000000; color: #000000; }
+  button.danger:hover { background: #f0f0f0; }
+  button.play { min-width: 48px; }
+  button.play.active { background: #000000; color: #ffffff; }
+  button.rate {
+    min-width: 132px; text-align: center; font-size: 12px;
+    background: #ffffff; border: 1px solid #000000; color: #000000;
+  }
+  button.rate.rate-perceived     { background: #d8f5d8; border-color: #6abf6a; color: #1b5e20; }
+  button.rate.rate-boundary      { background: #fff5d2; border-color: #d6a800; color: #5a4500; }
+  button.rate.rate-not-perceived { background: #f5d2d2; border-color: #c75a5a; color: #5a1010; }
+  button.rate.rate-perceived:hover     { background: #c4eec4; }
+  button.rate.rate-boundary:hover      { background: #ffeeb8; }
+  button.rate.rate-not-perceived:hover { background: #efbcbc; }
+  .status {
+    background: #ffffff; border: 1px solid #000000; padding: 10px 12px;
+    margin-bottom: 6px; font-size: 14px; color: #000000; min-height: 20px;
+  }
+  .panel {
+    background: #ffffff; border: 1px solid #000000; padding: 12px; margin-bottom: 12px;
+  }
+  .preset-row {
+    display: grid; grid-template-columns: 1fr auto auto; gap: 8px; align-items: center;
+    padding: 6px 8px;
+  }
+  .preset-row + .preset-row { border-top: 1px solid #000000; }
+  .preset-row.playing { background: #f0f0f0; }
+  .preset-name { color: #000000; }
+  .preset-desc { color: #000000; font-size: 12px; }
+  .preset-actions { display: flex; gap: 6px; }
+  .reaction-block { margin-top: 12px; padding-top: 10px; border-top: 1px solid #000000; }
+  .reaction-block label { display: block; font-size: 12px; color: #000000; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; }
+  .reaction-block textarea {
+    width: 100%; min-height: 90px; resize: vertical;
+    background: #ffffff; color: #000000; border: 1px solid #000000;
+    padding: 8px; font: inherit; font-size: 13px;
+  }
+  .results-panel { margin-top: 10px; padding-top: 10px; border-top: 1px solid #000000; display: none; }
+  .results-panel.open { display: block; }
+  .results-row {
+    display: grid; grid-template-columns: 1fr auto; gap: 8px;
+    padding: 6px 8px; border-bottom: 1px solid #000000;
+  }
+  .results-row:last-child { border-bottom: none; }
+  .results-mark { font-weight: bold; }
+  .nextround { display: flex; justify-content: flex-end; margin-top: 12px; }
+  .nextround a button { font-size: 14px; padding: 10px 16px; }
+  label { color: #000000; font-size: 12px; display: block; margin-bottom: 4px; }
+  input[type=range] { background: #ffffff; color: #000000; border: 1px solid #000000; padding: 4px 6px; font: inherit; }
+  .stage-bar { height: 6px; background: #ffffff; border: 1px solid #000000; overflow: hidden; margin-bottom: 12px; }
+  .stage-bar > div { height: 100%; background: #000000; width: 0%; transition: width 80ms linear; }
+  .toast {
+    position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+    background: #000000; color: #ffffff; padding: 8px 14px;
+    opacity: 0; transition: opacity 200ms; pointer-events: none;
+  }
+  .toast.show { opacity: 1; }
+  kbd { background: #ffffff; border: 1px solid #000000; padding: 1px 5px; font-size: 12px; }
+</style>
+</head>
+<body>
+
+<div class="nav">
+  <a href="index.html">← Home</a>
+  <span></span>
+</div>
+
+<h1>Round 1</h1>
+
+<div class="warn">
+  Headphones, low volume. Sawtooth/square at high gain hurts. <kbd>Space</kbd> = STOP ALL. Click rating to cycle: unset → perceived → boundary → not perceived → unset. Right-click rating to clear.
+</div>
+
+<div class="topbar">
+  <div class="vol">
+    <label style="margin: 0;">Master</label>
+    <input id="masterVol" type="range" min="0" max="1" step="0.01" value="0.2">
+    <span id="masterVolVal">0.20</span>
+  </div>
+  <button class="danger" id="stopAll">STOP ALL</button>
+</div>
+
+<div class="status" id="status">IDLE. click a preset</div>
+<div class="stage-bar"><div id="stageBar"></div></div>
+
+<div class="panel">
+  <h2>Presets</h2>
+  <div id="presets"></div>
+  <div class="reaction-block">
+    <label for="reaction">Reaction (cached per round)</label>
+    <textarea id="reaction" placeholder="reactions, observations, whatever you want to remember about this round…"></textarea>
+  </div>
+</div>
+
+<div class="nextround">
+  <a href="round2.html"><button>Proceed to Round 2 →</button></a>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+"use strict";
+
+const PRESETS = [
+  { id: "saw_short_1s",   name: "Saw 1s (short)",    desc: "sawtooth 200Hz 1s → noise 10s",   wave: "sawtooth", freq: 200,  dur: 1,  chase: 10 },
+  { id: "saw_long_30s",   name: "Saw 30s (long)",    desc: "sawtooth 200Hz 30s → noise 10s",  wave: "sawtooth", freq: 200,  dur: 30, chase: 10 },
+  { id: "sine_5s",        name: "Sine 5s",           desc: "sine 200Hz 5s → noise 10s",       wave: "sine",     freq: 200,  dur: 5,  chase: 10 },
+  { id: "square_5s",      name: "Square 5s",         desc: "square 200Hz 5s → noise 10s",     wave: "square",   freq: 200,  dur: 5,  chase: 10 },
+  { id: "saw_5s",         name: "Sawtooth 5s",       desc: "sawtooth 200Hz 5s → noise 10s",   wave: "sawtooth", freq: 200,  dur: 5,  chase: 10 },
+  { id: "saw_low_5s",     name: "Saw low (5s)",      desc: "sawtooth 80Hz 5s → noise 10s",    wave: "sawtooth", freq: 80,   dur: 5,  chase: 10 },
+  { id: "saw_mid_5s",     name: "Saw mid (5s)",      desc: "sawtooth 500Hz 5s → noise 10s",   wave: "sawtooth", freq: 500,  dur: 5,  chase: 10 },
+  { id: "saw_high_5s",    name: "Saw high (5s)",     desc: "sawtooth 3000Hz 5s → noise 10s",  wave: "sawtooth", freq: 3000, dur: 5,  chase: 10 },
+  { id: "saw_5s_silence", name: "Saw 5s → silence",  desc: "sawtooth 200Hz 5s → silence 10s (noise vs silence control)", wave: "sawtooth", freq: 200, dur: 5, chase: 10, chaseKind: "silence" },
+];
+
+const STATE_KEY = "diag_r1_v2";
+const ROUND_NAME = "round1";
+
+["diag_hits_v1", "diag_hits_r2_v1", "diag_hits_r3_v1"].forEach(k => localStorage.removeItem(k));
+
+function loadState() {
+  try {
+    const s = JSON.parse(localStorage.getItem(STATE_KEY) || "{}");
+    return { ratings: s.ratings || {}, reaction: s.reaction || "" };
+  } catch (e) { return { ratings: {}, reaction: "" }; }
+}
+function saveState(s) { localStorage.setItem(STATE_KEY, JSON.stringify(s)); }
+let state = loadState();
+
+const RATING_CYCLE = [null, "perceived", "boundary", "not_perceived"];
+const RATING_LABELS = {
+  null: "rate",
+  perceived: "perceived",
+  boundary: "boundary",
+  not_perceived: "not perceived",
+};
+function ratingClass(r) {
+  if (r === "perceived") return "rate-perceived";
+  if (r === "boundary") return "rate-boundary";
+  if (r === "not_perceived") return "rate-not-perceived";
+  return "";
+}
+function nextRating(r) {
+  const i = RATING_CYCLE.indexOf(r ?? null);
+  return RATING_CYCLE[(i + 1) % RATING_CYCLE.length];
+}
+function renderRateBtn(btn, presetId) {
+  const r = state.ratings[presetId] || null;
+  btn.classList.remove("rate-perceived", "rate-boundary", "rate-not-perceived");
+  const cls = ratingClass(r);
+  if (cls) btn.classList.add(cls);
+  btn.textContent = RATING_LABELS[r ?? "null"];
+}
+
+let ctx = null, masterGain = null, noiseBuffer = null;
+let activeNodes = [], pendingTimeouts = [], currentSeq = null, rafHandle = null;
+
+function ensureCtx() {
+  if (ctx) return;
+  ctx = new (window.AudioContext || window.webkitAudioContext)();
+  masterGain = ctx.createGain();
+  masterGain.gain.value = parseFloat(masterVolEl.value);
+  masterGain.connect(ctx.destination);
+  const len = ctx.sampleRate * 2;
+  noiseBuffer = ctx.createBuffer(1, len, ctx.sampleRate);
+  const data = noiseBuffer.getChannelData(0);
+  for (let i = 0; i < len; i++) data[i] = Math.random() * 2 - 1;
+}
+function clearPending() { for (const t of pendingTimeouts) clearTimeout(t); pendingTimeouts = []; }
+function stopAllNodes() {
+  if (!ctx) { activeNodes = []; return; }
+  const now = ctx.currentTime;
+  for (const node of activeNodes) {
+    try {
+      if (node.gain) {
+        node.gain.cancelScheduledValues(now);
+        node.gain.setValueAtTime(node.gain.value, now);
+        node.gain.linearRampToValueAtTime(0, now + 0.02);
+      } else if (node.stop) { node.stop(now + 0.03); }
+    } catch (e) {}
+    try { node.disconnect && node.disconnect(); } catch (e) {}
+  }
+  activeNodes = [];
+}
+function stopAll() {
+  clearPending();
+  stopAllNodes();
+  currentSeq = null;
+  setStatus("IDLE");
+  setStageBar(0);
+  document.querySelectorAll(".preset-row.playing").forEach(el => el.classList.remove("playing"));
+  document.querySelectorAll("button.play.active").forEach(el => el.classList.remove("active"));
+}
+
+function scheduleSequence(preset, rowEl, btnEl) {
+  ensureCtx();
+  if (ctx.state === "suspended") ctx.resume();
+  stopAll();
+  if (rowEl) rowEl.classList.add("playing");
+  if (btnEl) btnEl.classList.add("active");
+
+  const t0 = ctx.currentTime + 0.05;
+  const toneDur = preset.dur || 0;
+  const chaseDur = preset.chase || 0;
+  const chaseKind = preset.chaseKind || "noise";
+  const t1 = t0 + toneDur;
+  const t2 = t1 + chaseDur;
+
+  if (toneDur > 0 && preset.wave) {
+    const toneGain = ctx.createGain();
+    toneGain.connect(masterGain);
+    toneGain.gain.setValueAtTime(0, t0);
+    toneGain.gain.linearRampToValueAtTime(1.0, t0 + 0.005);
+    toneGain.gain.setValueAtTime(1.0, Math.max(t0 + 0.006, t1 - 0.003));
+    toneGain.gain.linearRampToValueAtTime(0, t1);
+    const osc = ctx.createOscillator();
+    osc.type = preset.wave;
+    osc.frequency.setValueAtTime(preset.freq, t0);
+    osc.connect(toneGain);
+    osc.start(t0);
+    osc.stop(t1 + 0.01);
+    activeNodes.push(osc, toneGain);
+  }
+  if (chaseDur > 0 && chaseKind === "noise") {
+    const noiseGain = ctx.createGain();
+    noiseGain.connect(masterGain);
+    noiseGain.gain.setValueAtTime(0.6, t1);
+    noiseGain.gain.setValueAtTime(0.6, t2 - 0.02);
+    noiseGain.gain.linearRampToValueAtTime(0, t2);
+    const noise = ctx.createBufferSource();
+    noise.buffer = noiseBuffer;
+    noise.loop = true;
+    noise.connect(noiseGain);
+    noise.start(t1);
+    noise.stop(t2 + 0.01);
+    activeNodes.push(noise, noiseGain);
+  }
+
+  currentSeq = { preset, t0, t1, t2, hasTone: toneDur > 0 && !!preset.wave, chaseKind };
+  const finish = () => {
+    if (rowEl) rowEl.classList.remove("playing");
+    if (btnEl) btnEl.classList.remove("active");
+    currentSeq = null;
+    setStatus("DONE. listen for running-water effect, set rating");
+    setStageBar(0);
+  };
+  pendingTimeouts.push(setTimeout(finish, (t2 - ctx.currentTime) * 1000 + 50));
+}
+
+const masterVolEl = document.getElementById("masterVol");
+const masterVolValEl = document.getElementById("masterVolVal");
+const stopAllBtn = document.getElementById("stopAll");
+const statusEl = document.getElementById("status");
+const stageBarEl = document.getElementById("stageBar");
+const presetsEl = document.getElementById("presets");
+const toastEl = document.getElementById("toast");
+const reactionEl = document.getElementById("reaction");
+
+function setStatus(s) { statusEl.textContent = s; }
+function setStageBar(p) { stageBarEl.style.width = (p * 100) + "%"; }
+
+masterVolEl.addEventListener("input", () => {
+  const v = parseFloat(masterVolEl.value);
+  masterVolValEl.textContent = v.toFixed(2);
+  if (masterGain) masterGain.gain.setTargetAtTime(v, ctx.currentTime, 0.01);
+});
+stopAllBtn.addEventListener("click", stopAll);
+window.addEventListener("keydown", (e) => {
+  if (e.code === "Space" && !["INPUT","SELECT","TEXTAREA"].includes(document.activeElement.tagName)) {
+    e.preventDefault();
+    stopAll();
+  }
+});
+
+for (const p of PRESETS) {
+  const row = document.createElement("div");
+  row.className = "preset-row";
+  row.dataset.id = p.id;
+  row.innerHTML = `
+    <div>
+      <div class="preset-name"></div>
+      <div class="preset-desc"></div>
+    </div>
+    <div class="preset-actions">
+      <button class="play" data-action="play">▶</button>
+      <button class="rate" data-action="rate">rate</button>
+    </div>
+  `;
+  row.querySelector(".preset-name").textContent = p.name;
+  row.querySelector(".preset-desc").textContent = p.desc;
+  const playBtn = row.querySelector('[data-action=play]');
+  const rateBtn = row.querySelector('[data-action=rate]');
+  renderRateBtn(rateBtn, p.id);
+
+  playBtn.addEventListener("click", () => scheduleSequence(p, row, playBtn));
+  rateBtn.addEventListener("click", () => {
+    const cur = state.ratings[p.id] || null;
+    const nxt = nextRating(cur);
+    if (nxt === null) delete state.ratings[p.id];
+    else state.ratings[p.id] = nxt;
+    saveState(state);
+    renderRateBtn(rateBtn, p.id);
+  });
+  rateBtn.addEventListener("contextmenu", (e) => {
+    e.preventDefault();
+    delete state.ratings[p.id];
+    saveState(state);
+    renderRateBtn(rateBtn, p.id);
+  });
+
+  presetsEl.appendChild(row);
+}
+
+reactionEl.value = state.reaction || "";
+reactionEl.addEventListener("input", () => {
+  state.reaction = reactionEl.value;
+  saveState(state);
+});
+
+window.addEventListener("focus", () => {
+  state = loadState();
+  document.querySelectorAll(".preset-row").forEach(row => {
+    const rb = row.querySelector('[data-action=rate]');
+    renderRateBtn(rb, row.dataset.id);
+  });
+  reactionEl.value = state.reaction || "";
+});
+
+let toastTimer = null;
+function showToast(msg) {
+  toastEl.textContent = msg;
+  toastEl.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toastEl.classList.remove("show"), 1400);
+}
+
+function tick() {
+  if (currentSeq && ctx) {
+    const now = ctx.currentTime;
+    const { t0, t1, t2, hasTone, preset, chaseKind } = currentSeq;
+    if (now < t1 && hasTone) {
+      const elapsed = Math.max(0, now - t0);
+      const total = t1 - t0;
+      setStatus(`STAGE 1/2: ${preset.wave} ${preset.freq}Hz, ${elapsed.toFixed(1)}/${total.toFixed(1)}s`);
+      setStageBar(total > 0 ? elapsed / total : 0);
+    } else if (now < t2) {
+      const elapsed = Math.max(0, now - t1);
+      const total = t2 - t1;
+      const label = chaseKind === "silence" ? "silence" : "white noise";
+      setStatus(`STAGE 2/2: ${label}, ${elapsed.toFixed(1)}/${total.toFixed(1)}s`);
+      setStageBar(total > 0 ? elapsed / total : 0);
+    }
+  }
+  rafHandle = requestAnimationFrame(tick);
+}
+rafHandle = requestAnimationFrame(tick);
+</script>
+
+</body>
+</html>
